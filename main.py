@@ -4,11 +4,21 @@ from app.router import auth, user, house, recommendation, visited_pages
 from app.router.error_handler import http_error_handler, validation_exception_handler
 from fastapi.exceptions import RequestValidationError
 from fastapi import HTTPException
+from fastapi.middleware.cors import CORSMiddleware  # Import CORS Middleware
 
 # กำหนด tokenUrl ให้ถูกต้อง
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
 app = FastAPI()
+
+# เพิ่ม CORS Middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # เปลี่ยน "*" เป็น URL ของ Frontend หากต้องการจำกัดการเข้าถึง
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # รวม router ต่างๆ พร้อมกำหนดการบังคับใช้ token ใน endpoint ที่ต้องการการรับรองความปลอดภัย
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
@@ -18,7 +28,6 @@ app.include_router(recommendation.router, prefix="/recommendation", tags=["Recom
 # app.include_router(visited_pages.router, prefix="/visited_page", tags=["Visited Pages"], dependencies=[Depends(oauth2_scheme)])
 app.add_exception_handler(HTTPException, http_error_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
-
 
 if __name__ == "__main__":
     import uvicorn
